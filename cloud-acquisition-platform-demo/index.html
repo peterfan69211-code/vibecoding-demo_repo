@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>云业务获客平台 · AI 原生 Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --surface: #121829;
+      --surface2: #1a2238;
+      --border: #2a3555;
+      --text: #e8ecf4;
+      --muted: #8b95ad;
+      --accent: #3b82f6;
+      --accent2: #06b6d4;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --ai: #a855f7;
+      --glow: rgba(59, 130, 246, 0.35);
+      --radius: 12px;
+      --sidebar-w: 260px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(59, 130, 246, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(168, 85, 247, 0.08), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      padding: 1.25rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .logo .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: 999px;
+      font-size: 0.65rem;
+      color: #c4b5fd;
+    }
+
+    .logo .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--ai);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .nav-section {
+      padding: 0.75rem 0.5rem 0.25rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding-left: 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 1rem;
+      margin: 0.1rem 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--muted);
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent);
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    .nav-item .icon { font-size: 1.1rem; width: 1.25rem; text-align: center; }
+
+    .role-switch {
+      margin-top: auto;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .role-switch label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .role-switch select {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(18, 24, 41, 0.8);
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    .btn-ai {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: none;
+      color: #fff;
+    }
+
+    .btn-ai:hover { filter: brightness(1.1); color: #fff; }
+
+    .content {
+      flex: 1;
+      padding: 1.25rem 1.5rem 2rem;
+      overflow-y: auto;
+    }
+
+    .panel { display: none; animation: fadeIn 0.25s ease; }
+    .panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+    }
+
+    .stat-card .label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 0.35rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-card .delta {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    .stat-card .delta.up { color: var(--success); }
+    .stat-card .delta.ai { color: #c4b5fd; }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .card-body { padding: 1.1rem; }
+
+    /* Flow diagram */
+    .flow-wrap {
+      overflow-x: auto;
+      padding: 0.5rem 0 1rem;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: max-content;
+      justify-content: center;
+    }
+
+    .flow-node {
+      padding: 0.55rem 0.85rem;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .flow-node:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--glow);
+    }
+
+    .flow-node.active {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .flow-node.done {
+      border-color: var(--success);
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .flow-node.ai-assisted::after {
+      content: 'AI';
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 0.55rem;
+      background: var(--ai);
+      color: #fff;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .flow-arrow {
+      color: var(--muted);
+      font-size: 0.9rem;
+      user-select: none;
+    }
+
+    .flow-branch {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.5rem;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .flow-branch-label {
+      font-size: 0.65rem;
+      color: var(--warning);
+      text-align: center;
+    }
+
+    /* Pipeline steps */
+    .pipeline {
+      display: flex;
+      gap: 0;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .pipe-step {
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+      padding: 0.65rem 0.5rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .pipe-step:first-child { border-radius: 8px 0 0 8px; }
+    .pipe-step:last-child { border-radius: 0 8px 8px 0; }
+
+    .pipe-step.active {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pipe-step.done { color: var(--success); border-color: rgba(34,197,94,0.4); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    th, td {
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 500;
+    }
+
+    .tag-high { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .tag-normal { background: rgba(59,130,246,0.2); color: #93c5fd; }
+    .tag-success { background: rgba(34,197,94,0.2); color: #86efac; }
+    .tag-ai { background: rgba(168,85,247,0.2); color: #c4b5fd; }
+    .tag-pending { background: rgba(139,149,173,0.2); color: var(--muted); }
+
+    /* Tier selector */
+    .tier-options {
+      display: flex;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .tier-opt {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .tier-opt:hover { border-color: var(--accent); }
+    .tier-opt.selected {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .tier-opt h4 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .tier-opt p { font-size: 0.72rem; color: var(--muted); }
+
+    /* AI insight box */
+    .ai-insight {
+      background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(59,130,246,0.08));
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .ai-insight .head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #c4b5fd;
+      margin-bottom: 0.5rem;
+    }
+
+    .ai-insight p {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .ai-insight .confidence {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    /* Architecture layers */
+    .arch-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .arch-layer {
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+      background: var(--surface2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .arch-layer:hover { transform: translateX(4px); }
+    .arch-layer.expanded { background: rgba(59, 130, 246, 0.08); }
+
+    .arch-layer h4 { font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .arch-layer p { font-size: 0.75rem; color: var(--muted); }
+
+    .arch-layer.l-ai { border-color: var(--ai); }
+    .arch-layer.l-data { border-color: var(--accent2); }
+    .arch-layer.l-biz { border-color: var(--accent); }
+
+    .arch-detail {
+      display: none;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .arch-layer.expanded .arch-detail { display: block; }
+
+    /* Copilot panel */
+    .copilot {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      width: 380px;
+      max-height: 520px;
+      background: var(--surface);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.25s, opacity 0.25s;
+    }
+
+    .copilot.collapsed {
+      transform: translateY(calc(100% - 52px));
+      max-height: 52px;
+      overflow: hidden;
+    }
+
+    .copilot-header {
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, #4c1d95, #5b21b6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .copilot-header h4 {
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .copilot-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      min-height: 200px;
+      max-height: 320px;
+    }
+
+    .msg {
+      margin-bottom: 0.75rem;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .msg.user {
+      text-align: right;
+    }
+
+    .msg.user .bubble {
+      display: inline-block;
+      background: var(--accent);
+      padding: 0.5rem 0.75rem;
+      border-radius: 12px 12px 4px 12px;
+      max-width: 90%;
+      text-align: left;
+    }
+
+    .msg.bot .bubble {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      border-radius: 12px 12px 12px 4px;
+      max-width: 95%;
+    }
+
+    .msg.bot .cite {
+      font-size: 0.68rem;
+      color: var(--accent2);
+      margin-top: 0.35rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .copilot-input {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .copilot-input input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+    }
+
+    .copilot-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0 0.75rem 0.5rem;
+    }
+
+    .copilot-suggestions button {
+      font-size: 0.68rem;
+      padding: 0.25rem 0.5rem;
+      background: rgba(168,85,247,0.15);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 999px;
+      color: #c4b5fd;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .copilot-suggestions button:hover {
+      background: rgba(168,85,247,0.25);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.75rem 1.1rem;
+      background: var(--surface);
+      border: 1px solid var(--success);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      z-index: 200;
+      transform: translateX(120%);
+      transition: transform 0.3s;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    .toast.show { transform: translateX(0); }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0.75rem 0;
+    }
+
+    .progress-bar > div {
+      height: 100%;
+      transition: width 0.4s ease;
+    }
+
+    .detail-panel {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--surface2);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .detail-panel.show { display: block; }
+
+    .agent-chain {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .agent-node {
+      padding: 0.5rem 0.75rem;
+      background: rgba(168,85,247,0.12);
+      border: 1px solid rgba(168,85,247,0.35);
+      border-radius: 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .agent-node.active {
+      background: rgba(168,85,247,0.3);
+      box-shadow: 0 0 16px rgba(168,85,247,0.3);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      padding: 1rem;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 480px;
+      width: 100%;
+      padding: 1.25rem;
+    }
+
+    .modal h3 { margin-bottom: 0.75rem; font-size: 1rem; }
+    .modal p { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 1rem; }
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+    .bill-explainer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      background: #0d1117;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      line-height: 1.7;
+      color: #8b949e;
+    }
+
+    .bill-explainer .hl { color: #79c0ff; }
+    .bill-explainer .amt { color: #ffa657; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>CloudAcquire</h1>
+        <span>云业务获客 · AI 原生平台</span>
+        <span class="badge">Agent Orchestrator 在线</span>
+      </div>
+
+      <div class="nav-section">总览</div>
+      <div class="nav-item active" data-panel="dashboard"><span class="icon">📊</span> 驾驶舱</div>
+      <div class="nav-item" data-panel="flow"><span class="icon">🔄</span> 业务闭环</div>
+
+      <div class="nav-section">业务域</div>
+      <div class="nav-item" data-panel="lead"><span class="icon">🎯</span> 获客域</div>
+      <div class="nav-item" data-panel="customer"><span class="icon">👥</span> 客户域</div>
+      <div class="nav-item" data-panel="quote"><span class="icon">💰</span> 报价域</div>
+      <div class="nav-item" data-panel="deal"><span class="icon">📝</span> 交易域</div>
+      <div class="nav-item" data-panel="delivery"><span class="icon">🛠</span> 交付域</div>
+      <div class="nav-item" data-panel="billing"><span class="icon">📑</span> 计费域</div>
+      <div class="nav-item" data-panel="growth"><span class="icon">📈</span> 增长域</div>
+
+      <div class="nav-section">AI 平台</div>
+      <div class="nav-item" data-panel="ai-arch"><span class="icon">🧠</span> AI 架构</div>
+      <div class="nav-item" data-panel="agents"><span class="icon">🤖</span> Agent 编排</div>
+
+      <div class="role-switch">
+        <label>切换角色视角</label>
+        <select id="roleSelect">
+          <option value="sales">销售</option>
+          <option value="presales">售前架构师</option>
+          <option value="biz">商务 / 产品</option>
+          <option value="finance">财务 / 运营</option>
+          <option value="customer">客户门户</option>
+          <option value="exec">管理层</option>
+        </select>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <h2 id="pageTitle">管理驾驶舱</h2>
+        <div class="topbar-actions">
+          <button class="btn" id="btnSimulate">▶ 模拟一笔商机</button>
+          <button class="btn btn-ai" id="btnCopilot">✨ AI Copilot</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Dashboard -->
+        <section class="panel active" id="panel-dashboard">
+          <div class="stats" id="dashboardStats"></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><h3>漏斗概览</h3><span class="tag tag-ai">AI 预测</span></div>
+              <div class="card-body">
+                <div class="progress-bar"><div id="funnelProgress" style="width:42%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px"></div></div>
+                <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.75rem">线索 128 → 商机 45 → 意向 18 → 签约 7（本月）</p>
+                <table>
+                  <thead><tr><th>阶段</th><th>数量</th><th>AI 赢单率</th></tr></thead>
+                  <tbody id="funnelTable"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>待办 · AI 推荐</h3></div>
+              <div class="card-body" id="aiTodos"></div>
+            </div>
+          </div>
+          <div class="ai-insight" style="margin-top:1.25rem">
+            <div class="head">✨ 管理洞察 Agent</div>
+            <p id="execInsight">本月高优客户转化率较上月提升 12%。账单异常客户「星云科技」EC2 费用突增 38%，已自动生成 FinOps 优化商机并分配给销售张伟。建议关注 3 笔 OA 审批超 48h 的商机。</p>
+            <div class="confidence">置信度 89% · 数据来源：商机管道 + CUR 异常检测 + OA 时效</div>
+          </div>
+        </section>
+
+        <!-- Business flow -->
+        <section class="panel" id="panel-flow">
+          <div class="card">
+            <div class="card-header">
+              <h3>业务闭环 · 可点击推进</h3>
+              <button class="btn btn-primary" id="btnAdvanceFlow">推进下一步</button>
+            </div>
+            <div class="card-body">
+              <div class="flow-wrap">
+                <div class="flow" id="businessFlow"></div>
+              </div>
+              <div class="pipeline" id="flowPipeline"></div>
+              <div class="detail-panel show" id="flowDetail"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lead -->
+        <section class="panel" id="panel-lead">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><h3>线索池</h3><button class="btn btn-ai" onclick="aiScoreLeads()">AI 评分排序</button></div>
+              <div class="card-body">
+                <table>
+                  <thead><tr><th>公司</th><th>渠道</th><th>AI 评分</th><th>操作</th></tr></thead>
+                  <tbody id="leadTable"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>跟进 Copilot 草稿</h3></div>
+              <div class="card-body">
+                <p style="font-size:0.82rem;line-height:1.6" id="followupDraft">选择线索后生成跟进邮件…</p>
+                <button class="btn btn-primary" style="margin-top:0.75rem" onclick="toast('已发送跟进邮件（模拟）')">确认发送</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Customer -->
+        <section class="panel" id="panel-customer">
+          <div class="card">
+            <div class="card-header"><h3>客户分级 · 判断等级</h3></div>
+            <div class="card-body">
+              <p style="font-size:0.85rem;margin-bottom:0.5rem">当前客户：<strong id="tierCustomerName">星云科技有限公司</strong></p>
+              <div class="tier-options">
+                <div class="tier-opt" data-tier="normal" onclick="selectTier('normal')">
+                  <h4>一般客户</h4>
+                  <p>直接进入返点报价</p>
+                </div>
+                <div class="tier-opt selected" data-tier="high" onclick="selectTier('high')">
+                  <h4>高优客户</h4>
+                  <p>触发技产销会审</p>
+                </div>
+                <div class="tier-opt" data-tier="strategic" onclick="selectTier('strategic')">
+                  <h4>战略客户</h4>
+                  <p>VP 级会审 + 特批</p>
+                </div>
+              </div>
+              <div class="ai-insight" id="tierAiInsight"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quote -->
+        <section class="panel" id="panel-quote">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><h3>商务返点报价</h3><button class="btn btn-ai" onclick="generateQuote()">AI 生成草案</button></div>
+              <div class="card-body">
+                <table>
+                  <thead><tr><th>产品线</th><th>目录价</th><th>返点</th><th>客户价</th></tr></thead>
+                  <tbody id="quoteTable"></tbody>
+                </table>
+                <p style="font-size:0.75rem;color:var(--muted);margin-top:0.75rem">预估月消费 ¥128,000 · 毛利 <span style="color:var(--success)">18.2%</span> <span class="tag tag-success">高于底价</span></p>
+              </div>
+            </div>
+            <div class="card" id="reviewCard">
+              <div class="card-header"><h3>技产销会审</h3><span class="tag tag-high">高优</span></div>
+              <div class="card-body">
+                <ul style="font-size:0.82rem;line-height:1.8;padding-left:1.2rem" id="reviewChecklist"></ul>
+                <button class="btn btn-primary" style="margin-top:0.75rem" onclick="completeReview()">完成会审 · 修订报价</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Deal -->
+        <section class="panel" id="panel-deal">
+          <div class="card">
+            <div class="card-header"><h3>签单意向 → OA → 签约</h3></div>
+            <div class="card-body">
+              <div class="pipeline" id="dealPipeline"></div>
+              <div class="grid-2" style="margin-top:1rem">
+                <div>
+                  <h4 style="font-size:0.85rem;margin-bottom:0.5rem">OA 审批进度</h4>
+                  <table>
+                    <thead><tr><th>节点</th><th>审批人</th><th>状态</th></tr></thead>
+                    <tbody id="oaTable"></tbody>
+                  </table>
+                </div>
+                <div>
+                  <h4 style="font-size:0.85rem;margin-bottom:0.5rem">合同风险扫描 · AI</h4>
+                  <div class="ai-insight">
+                    <div class="head">⚠ 发现 2 项风险</div>
+                    <p>① 付款账期 90 天超出标准 60 天 · ② 数据出境条款需法务加签<br><br>建议：使用模板 B-修订版，预计审批缩短 1.5 天。</p>
+                  </div>
+                  <button class="btn btn-primary" style="margin-top:0.75rem" onclick="advanceDeal()">提交 / 推进审批</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Delivery -->
+        <section class="panel" id="panel-delivery">
+          <div class="card">
+            <div class="card-header"><h3>技术服务交付</h3><span class="tag tag-success">已签约</span></div>
+            <div class="card-body">
+              <table>
+                <thead><tr><th>服务包</th><th>工单</th><th>SLA</th><th>状态</th></tr></thead>
+                <tbody id="deliveryTable"></tbody>
+              </table>
+              <div class="ai-insight" style="margin-top:1rem">
+                <div class="head">🛠 交付 Copilot</div>
+                <p>根据合同已自动生成 6 项开通任务：Organizations 邀请、Cost Allocation Tags、监控告警基线、Landing Zone 检查清单…</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Billing -->
+        <section class="panel" id="panel-billing">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><h3>账单流水线</h3></div>
+              <div class="card-body">
+                <div class="flow" style="justify-content:flex-start;margin-bottom:1rem">
+                  <span class="flow-node done">AWS 原始账单</span>
+                  <span class="flow-arrow">→</span>
+                  <span class="flow-node done">CUR 采集</span>
+                  <span class="flow-arrow">→</span>
+                  <span class="flow-node active ai-assisted">MSP 分账</span>
+                  <span class="flow-arrow">→</span>
+                  <span class="flow-node">客户账单</span>
+                </div>
+                <button class="btn btn-primary" onclick="runBilling()">执行分账出账</button>
+                <button class="btn" onclick="explainBill()" style="margin-left:0.5rem">AI 解释账单</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>账单解释</h3><span class="tag tag-ai">带引用</span></div>
+              <div class="card-body">
+                <div class="bill-explainer" id="billExplainer">
+                  <span class="hl">// 点击「AI 解释账单」查看</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Growth -->
+        <section class="panel" id="panel-growth">
+          <div class="card">
+            <div class="card-header"><h3>业务闭环 · 增长商机</h3></div>
+            <div class="card-body">
+              <table>
+                <thead><tr><th>触发源</th><th>客户</th><th>商机类型</th><th>AI 建议</th></tr></thead>
+                <tbody id="growthTable"></tbody>
+              </table>
+              <div class="ai-insight" style="margin-top:1rem">
+                <div class="head">📈 增长 Agent</div>
+                <p>客户账单确认 → 付款 → 健康度更新 → 自动创建续费/扩购任务。当前 4 条 AI 生成商机待销售采纳。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI Arch -->
+        <section class="panel" id="panel-ai-arch">
+          <div class="card">
+            <div class="card-header"><h3>AI 平台分层架构</h3></div>
+            <div class="card-body arch-layers" id="archLayers"></div>
+          </div>
+        </section>
+
+        <!-- Agents -->
+        <section class="panel" id="panel-agents">
+          <div class="card">
+            <div class="card-header"><h3>多 Agent 编排链</h3><button class="btn btn-ai" onclick="runAgentChain()">运行演示</button></div>
+            <div class="card-body">
+              <div class="agent-chain" id="agentChain"></div>
+              <div class="detail-panel show" id="agentLog" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;max-height:200px;overflow-y:auto"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Copilot -->
+  <div class="copilot" id="copilot">
+    <div class="copilot-header" id="copilotToggle">
+      <h4>✨ 统一 Copilot</h4>
+      <span style="font-size:0.75rem;opacity:0.8">点击收起</span>
+    </div>
+    <div class="copilot-messages" id="copilotMessages"></div>
+    <div class="copilot-suggestions" id="copilotSuggestions"></div>
+    <div class="copilot-input">
+      <input type="text" id="copilotInput" placeholder="问我任何关于客户、报价、账单…" />
+      <button class="btn btn-ai" id="copilotSend">发送</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h3 id="modalTitle">确认</h3>
+      <p id="modalBody"></p>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="modalConfirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      role: 'sales',
+      flowStep: 0,
+      dealStep: 0,
+      tier: 'high',
+      customer: '星云科技有限公司',
+      simulated: false,
+    };
+
+    const FLOW_STEPS = [
+      { id: 'customer', label: '客户', ai: false, desc: '企业客户进入销售管道，CRM 建立 Account 与联系人。' },
+      { id: 'sales', label: '销售', ai: true, desc: '销售 Agent：分配线索、更新 360、推荐下一步跟进。' },
+      { id: 'grade', label: '判断等级', ai: true, desc: 'ML 分级 + 可解释因子。一般客户 → 报价；高优 → 技产销会审。' },
+      { id: 'quote', label: '业务返点报价', ai: true, desc: '报价 Agent 生成草案，规则引擎校验底价与毛利。' },
+      { id: 'intent', label: '签单意向', ai: false, desc: '商机进入意向阶段，赢单概率预测更新。' },
+      { id: 'oa', label: 'OA 审批', ai: true, desc: '审批路径推荐、合同风险扫描、加签建议。' },
+      { id: 'sign', label: '签单', ai: true, desc: '电子签完成，CommercialSnapshot 冻结返点与分账规则。' },
+      { id: 'service', label: '技术服务', ai: true, desc: '交付 Agent 自动生成开通工单与服务包。' },
+      { id: 'aws', label: 'AWS 原始账单', ai: false, desc: 'CUR / Detailed Billing 采集入库。' },
+      { id: 'msp', label: 'MSP 分账平台', ai: true, desc: '分账引擎（金额唯一真相）+ 异常检测 ML。' },
+      { id: 'bill', label: '客户账单', ai: true, desc: '账单解释 LLM（带行级引用），客户门户发布。' },
+      { id: 'loop', label: '业务闭环', ai: true, desc: '增长 Agent：续费、FinOps 优化、扩购商机回写销售。' },
+    ];
+
+    const AGENTS = ['销售 Agent', '会审 Agent', '报价 Agent', '交易 Agent', '交付 Agent', '账单 Agent', '增长 Agent'];
+
+    const COPILOT_REPLIES = {
+      '为何这个月账单高了': '星云科技 4 月账单 ¥168,420，较 3 月 +38%。主要贡献：<br>① EC2 实例 i-0a8f… 升级 c5.4xlarge（+¥42,100）<br>② 新区域 ap-southeast-1 流量费（+¥8,200）<br>③ RI 到期 3 台转为 On-Demand<br><div class="cite">引用: line_id=cur_202604_ec2_8842, cur_202604_data_2201</div>',
+      '高优客户会审要点': '建议会审清单：<br>· 技术：多账号 OU 规划、合规数据出境<br>· 产品：EDP 承诺消费是否可达<br>· 销售：竞品阿里云 15% 返点对标<br>预计毛利 18.2%，高于底价线 3.1%。',
+      'default': '已理解您的问题。基于当前租户数据，我建议查看「业务闭环」面板推进流程，或在「计费域」使用账单解释（所有金额以分账引擎为准）。需要我生成报价草案或续费商机吗？',
+    };
+
+    const ROLE_STATS = {
+      sales: [
+        { label: '我的商机', value: '12', delta: '+2 本周', up: true },
+        { label: '待跟进线索', value: '8', delta: 'AI 优先 3 条', ai: true },
+        { label: '本月签约', value: '¥2.1M', delta: '+15%', up: true },
+        { label: 'AI 采纳率', value: '76%', delta: '报价草案', ai: true },
+      ],
+      presales: [
+        { label: '会审待办', value: '4', delta: '2 场今日', up: false },
+        { label: '方案版本', value: '9', delta: 'v3 进行中', ai: true },
+        { label: '技术风险', value: '1', delta: '高', up: false },
+        { label: 'Copilot 使用', value: '34', delta: '次/周', ai: true },
+      ],
+      biz: [
+        { label: '报价审批', value: '6', delta: '2 超底价', up: false },
+        { label: '平均毛利', value: '17.8%', delta: '+0.3%', up: true },
+        { label: '返点政策命中', value: '92%', delta: '规则引擎', ai: true },
+        { label: '例外审批', value: '3', delta: '待 OA', up: false },
+      ],
+      finance: [
+        { label: '本月出账', value: '¥8.4M', delta: '已关账 4/5', up: true },
+        { label: '账单争议', value: '2', delta: '-1', up: true },
+        { label: '对账差异', value: '0.02%', delta: '三方一致', up: true },
+        { label: '异常检测', value: '5', delta: 'AI 标记', ai: true },
+      ],
+      customer: [
+        { label: '本月消费', value: '¥168K', delta: '+38%', up: false },
+        { label: '预算使用', value: '84%', delta: '预警线 90%', up: false },
+        { label: '优化建议', value: '3', delta: 'RI/SP', ai: true },
+        { label: '工单 open', value: '1', delta: '账单咨询', up: false },
+      ],
+      exec: [
+        { label: '签约 ARR', value: '¥28M', delta: '+22% YoY', up: true },
+        { label: 'NRR', value: '112%', delta: '+4pt', up: true },
+        { label: 'AI 人效提升', value: '31%', delta: '销售周期', ai: true },
+        { label: '账单准确率', value: '99.98%', delta: '引擎', up: true },
+      ],
+    };
+
+    function $(sel) { return document.querySelector(sel); }
+    function $$(sel) { return document.querySelectorAll(sel); }
+
+    function toast(msg) {
+      const t = $('#toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    function renderDashboard() {
+      const stats = ROLE_STATS[state.role] || ROLE_STATS.sales;
+      $('#dashboardStats').innerHTML = stats.map(s => `
+        <div class="stat-card">
+          <div class="label">${s.label}</div>
+          <div class="value">${s.value}</div>
+          <div class="delta ${s.up ? 'up' : s.ai ? 'ai' : ''}">${s.delta}</div>
+        </div>
+      `).join('');
+
+      $('#funnelTable').innerHTML = [
+        ['线索', 128, '—'],
+        ['商机', 45, '34%'],
+        ['意向', 18, '52%'],
+        ['签约', 7, '68%'],
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+
+      $('#aiTodos').innerHTML = [
+        ['🔥', '星云科技', '完成高优会审', '今天'],
+        ['💰', '云创实业', 'AI 报价待确认', '明天'],
+        ['📑', '智造云', '账单争议回复', '2h 前'],
+      ].map(t => `
+        <div style="display:flex;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.82rem;cursor:pointer" onclick="navigate('quote')">
+          <span>${t[0]}</span>
+          <div style="flex:1"><strong>${t[1]}</strong><br><span style="color:var(--muted)">${t[2]}</span></div>
+          <span style="color:var(--muted);font-size:0.72rem">${t[3]}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderFlow() {
+      const step = state.flowStep;
+      let html = '';
+      FLOW_STEPS.forEach((s, i) => {
+        if (s.id === 'grade') {
+          html += `<div class="flow-branch">
+            <span class="flow-branch-label">分支</span>
+            <span class="flow-node ${i <= step ? 'done' : ''} ${i === step ? 'active' : ''} ${s.ai ? 'ai-assisted' : ''}" data-step="${i}">${s.label}</span>
+            <span style="font-size:0.65rem;color:var(--muted);text-align:center">一般 → 报价 · 高优 → 会审</span>
+          </div>`;
+        } else {
+          const cls = i < step ? 'done' : i === step ? 'active' : '';
+          html += `<span class="flow-node ${cls} ${s.ai ? 'ai-assisted' : ''}" data-step="${i}">${s.label}</span>`;
+          if (i < FLOW_STEPS.length - 1 && s.id !== 'grade') html += '<span class="flow-arrow">→</span>';
+        }
+      });
+      $('#businessFlow').innerHTML = html;
+      $$('#businessFlow .flow-node').forEach(n => {
+        n.onclick = () => {
+          state.flowStep = parseInt(n.dataset.step, 10);
+          renderFlow();
+        };
+      });
+
+      $('#flowPipeline').innerHTML = FLOW_STEPS.map((s, i) =>
+        `<div class="pipe-step ${i < step ? 'done' : i === step ? 'active' : ''}" data-step="${i}">${s.label}</div>`
+      ).join('');
+      $$('#flowPipeline .pipe-step').forEach(p => {
+        p.onclick = () => { state.flowStep = parseInt(p.dataset.step, 10); renderFlow(); };
+      });
+
+      const cur = FLOW_STEPS[step];
+      $('#flowDetail').innerHTML = `<strong>步骤 ${step + 1}/${FLOW_STEPS.length}：${cur.label}</strong><br>${cur.desc}${cur.ai ? '<br><br><span class="tag tag-ai">AI 辅助</span> 此节点已接入 Agent / ML / RAG 能力。' : ''}`;
+    }
+
+    function advanceFlow() {
+      if (state.flowStep < FLOW_STEPS.length - 1) {
+        state.flowStep++;
+        renderFlow();
+        toast(`已推进至：${FLOW_STEPS[state.flowStep].label}`);
+      } else {
+        toast('业务闭环完成 · 增长 Agent 已创建续费任务');
+      }
+    }
+
+    function renderLeads() {
+      const leads = [
+        { name: '智汇网络', channel: 'AWS 活动', score: 92 },
+        { name: '蓝海数据', channel: '伙伴引荐', score: 78 },
+        { name: '腾云制造', channel: '官网', score: 65 },
+      ];
+      $('#leadTable').innerHTML = leads.map(l => `
+        <tr>
+          <td>${l.name}</td><td>${l.channel}</td>
+          <td><span class="tag tag-ai">${l.score}</span></td>
+          <td><button class="btn" onclick="selectLead('${l.name}')">跟进</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function selectLead(name) {
+      $('#followupDraft').innerHTML = `致 ${name} 负责人：<br><br>感谢您参加上周 AWS 创新日。根据贵司混合云规划，我方可提供 <strong>15% 业务返点</strong> 及 FinOps 月度优化报告。建议下周三安排 30 分钟架构交流。<br><br><span style="color:var(--muted)">— 由跟进 Copilot 生成 · 请编辑后发送</span>`;
+      toast(`已生成 ${name} 跟进草稿`);
+    }
+
+    function aiScoreLeads() {
+      toast('AI 已按成单概率重排线索池');
+    }
+
+    function selectTier(tier) {
+      state.tier = tier;
+      $$('.tier-opt').forEach(el => el.classList.toggle('selected', el.dataset.tier === tier));
+      const insights = {
+        normal: 'AI 分级：一般客户（置信度 91%）。预估月消费 ¥80K，无战略标签。建议直接进入标准返点报价模板 T-01。',
+        high: 'AI 分级：高优客户（置信度 87%）。因子：预估 ARR>¥1.5M、多账号复杂度、竞品在场。已自动创建技产销会审任务包。',
+        strategic: 'AI 分级：战略客户（置信度 94%）。因子：行业头部、定制 EDP、合规等级高。触发 VP 会审与特批流程。',
+      };
+      $('#tierAiInsight').innerHTML = `<div class="head">✨ 分级引擎</div><p>${insights[tier]}</p><div class="confidence">可申诉 · 销售 override 将记录审计日志</div>`;
+      $('#reviewCard').style.display = tier === 'normal' ? 'none' : 'block';
+    }
+
+    function renderQuote() {
+      $('#quoteTable').innerHTML = [
+        ['EC2 / 计算', '¥52,000', '12%', '¥45,760'],
+        ['S3 / 存储', '¥18,000', '10%', '¥16,200'],
+        ['RDS', '¥22,000', '12%', '¥19,360'],
+        ['MSP 托管服务', '¥36,000', '—', '¥36,000'],
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+
+      $('#reviewChecklist').innerHTML = [
+        '技术：OU 规划与 IAM 边界方案 v2',
+        '产品：EDP 承诺 ¥150万/年 可达性评估',
+        '销售：竞品返点对标与谈判底线',
+        '风险：数据出境 → 法务条款加签',
+      ].map(i => `<li>${i}</li>`).join('');
+    }
+
+    function generateQuote() {
+      toast('报价 Agent 已生成草案 v2 · 毛利校验通过');
+    }
+
+    function completeReview() {
+      toast('会审完成 · 报价已修订并锁定版本');
+      navigate('deal');
+    }
+
+    const DEAL_STEPS = ['签单意向', 'OA 审批中', '待签约', '已签约'];
+    function renderDeal() {
+      $('#dealPipeline').innerHTML = DEAL_STEPS.map((s, i) =>
+        `<div class="pipe-step ${i < state.dealStep ? 'done' : i === state.dealStep ? 'active' : ''}">${s}</div>`
+      ).join('');
+      const oaStatus = ['已通过', '已通过', state.dealStep >= 1 ? '审批中' : '待提交', '待提交'];
+      $('#oaTable').innerHTML = [
+        ['销售总监', '王明', oaStatus[0]],
+        ['商务', '李芳', oaStatus[1]],
+        ['法务', '陈静', oaStatus[2]],
+        ['财务', '赵磊', oaStatus[3]],
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td><span class="tag ${r[2]==='已通过'?'tag-success':r[2]==='审批中'?'tag-high':'tag-pending'}">${r[2]}</span></td></tr>`).join('');
+    }
+
+    function advanceDeal() {
+      if (state.dealStep < DEAL_STEPS.length - 1) {
+        state.dealStep++;
+        renderDeal();
+        toast(`交易阶段：${DEAL_STEPS[state.dealStep]}`);
+      } else toast('已签约 · CommercialSnapshot 已冻结');
+    }
+
+    function renderDelivery() {
+      $('#deliveryTable').innerHTML = [
+        ['7×24 托管', 'WO-2401', '99.9%', '进行中'],
+        ['Landing Zone', 'WO-2402', '—', '已完成'],
+        ['FinOps 月报', 'WO-2403', '每月 5 日', '待启动'],
+        ['安全基线', 'WO-2404', '—', '进行中'],
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="tag tag-success">${r[3]}</span></td></tr>`).join('');
+    }
+
+    function runBilling() {
+      toast('分账引擎执行完成 · 客户账单 INV-2026-04-001 已生成');
+      $$('#panel-billing .flow-node')[3]?.classList.add('done');
+    }
+
+    function explainBill() {
+      $('#billExplainer').innerHTML = `<span class="hl">// AI 账单解释 · 星云科技 · 2026-04</span>
+<span class="hl">total</span>: <span class="amt">¥168,420.00</span>  (<span class="amt">+38.2%</span> vs 2026-03)
+
+<span class="hl">breakdown</span>:
+  ec2.compute     <span class="amt">¥98,200</span>  (+¥42,100)  <span class="hl"># line cur_8842</span>
+  network.data    <span class="amt">¥24,100</span>  (+¥8,200)   <span class="hl"># line cur_2201</span>
+  ri.expired      <span class="amt">¥18,600</span>  (new)       <span class="hl"># 3 instances</span>
+  ...
+
+<span class="hl">citation_ids</span>: [cur_202604_ec2_8842, cur_202604_data_2201]
+<span class="hl">amount_source</span>: allocation_engine_v3.2  <span class="hl">// 非 LLM 计算</span>`;
+      addCopilotMessage('bot', COPILOT_REPLIES['为何这个月账单高了']);
+    }
+
+    function renderGrowth() {
+      $('#growthTable').innerHTML = [
+        ['账单异常 +38%', '星云科技', 'FinOps 优化', '推荐 RI 采购'],
+        ['合同 90 天到期', '云创实业', '续费', 'EDP 续签草案'],
+        ['用量超承诺', '智造云', '扩容谈判', '提升承诺档位'],
+        ['健康度下降', '蓝海数据', '挽回', '安排 QBR'],
+      ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="tag tag-ai">${r[3]}</span></td></tr>`).join('');
+    }
+
+    function renderArch() {
+      const layers = [
+        { title: '体验层 + Copilot', type: 'l-ai', detail: '销售/商务/交付/FinOps Copilot、客户门户、管理驾驶舱' },
+        { title: 'Agent 编排层', type: 'l-ai', detail: 'Orchestrator、7 领域 Agent、人工闸门、长任务状态机' },
+        { title: 'AI 能力层', type: 'l-ai', detail: 'LLM Gateway、RAG、ML 推理、规则引擎、Tool 注册表' },
+        { title: '业务域服务', type: 'l-biz', detail: '获客、客户、报价、交易、交付、计费、增长' },
+        { title: '平台能力', type: 'l-biz', detail: 'BPM、权限、审计、通知、文档、搜索' },
+        { title: '数据与智能', type: 'l-data', detail: 'MDM、Lakehouse、Feature Store、评测集' },
+        { title: '集成层', type: 'l-data', detail: 'AWS CUR、MSP 分账、OA、电子签、ERP' },
+      ];
+      $('#archLayers').innerHTML = layers.map((l, i) => `
+        <div class="arch-layer ${l.type}" onclick="this.classList.toggle('expanded')">
+          <h4>${l.title}</h4>
+          <p>点击展开</p>
+          <div class="arch-detail">${l.detail}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderAgents() {
+      $('#agentChain').innerHTML = AGENTS.map((a, i) =>
+        `<span class="agent-node" data-i="${i}">${a}</span>${i < AGENTS.length - 1 ? '<span class="flow-arrow">→</span>' : ''}`
+      ).join('');
+      $('#agentLog').textContent = '> Agent Orchestrator 就绪。点击「运行演示」查看跨域编排日志。';
+    }
+
+    function runAgentChain() {
+      const log = $('#agentLog');
+      log.innerHTML = '';
+      let i = 0;
+      const msgs = [
+        '[销售 Agent] 更新客户 360，建议分级：高优',
+        '[会审 Agent] 生成会审材料包 meeting_pack_v1',
+        '[报价 Agent] 输出 Quote 草案，毛利 18.2% ✓',
+        '[交易 Agent] 提交 OA，预测 2.5 天完成',
+        '[交付 Agent] 签约触发 6 项开通工单',
+        '[账单 Agent] CUR 采集完成，异常检测：EC2 +38%',
+        '[增长 Agent] 创建 FinOps 优化商机 → 销售张伟',
+      ];
+      const interval = setInterval(() => {
+        $$('.agent-node').forEach((n, j) => n.classList.toggle('active', j === i));
+        log.innerHTML += msgs[i] + '<br>';
+        log.scrollTop = log.scrollHeight;
+        i++;
+        if (i >= msgs.length) {
+          clearInterval(interval);
+          toast('Agent 链演示完成 · 业务闭环');
+        }
+      }, 700);
+    }
+
+    const PANEL_TITLES = {
+      dashboard: '管理驾驶舱',
+      flow: '业务闭环',
+      lead: '获客域',
+      customer: '客户域 · 分级',
+      quote: '报价域',
+      deal: '交易域',
+      delivery: '交付域',
+      billing: '计费域',
+      growth: '增长域',
+      'ai-arch': 'AI 平台架构',
+      agents: 'Agent 编排',
+    };
+
+    function navigate(panel) {
+      $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.panel === panel));
+      $$('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${panel}`));
+      $('#pageTitle').textContent = PANEL_TITLES[panel] || panel;
+    }
+
+    function initCopilot() {
+      const suggestions = ['为何这个月账单高了？', '高优客户会审要点', '生成报价草案', '查看 OA 进度'];
+      $('#copilotSuggestions').innerHTML = suggestions.map(s =>
+        `<button type="button" onclick="askCopilot('${s}')">${s}</button>`
+      ).join('');
+      addCopilotMessage('bot', '你好！我是统一 Copilot。可查询客户 360、报价、账单解释（带引用）、审批进度。金额始终以分账引擎为准。');
+    }
+
+    function addCopilotMessage(role, html) {
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.innerHTML = `<div class="bubble">${html}</div>`;
+      $('#copilotMessages').appendChild(div);
+      $('#copilotMessages').scrollTop = $('#copilotMessages').scrollHeight;
+    }
+
+    function askCopilot(q) {
+      addCopilotMessage('user', q);
+      const key = Object.keys(COPILOT_REPLIES).find(k => q.includes(k.slice(0, 4)));
+      const reply = COPILOT_REPLIES[key] || COPILOT_REPLIES.default;
+      setTimeout(() => addCopilotMessage('bot', reply), 400);
+    }
+
+    function simulateDeal() {
+      state.flowStep = 0;
+      state.dealStep = 0;
+      state.simulated = true;
+      renderFlow();
+      renderDeal();
+      navigate('flow');
+      toast('已重置并加载演示商机：星云科技');
+      let step = 0;
+      const timer = setInterval(() => {
+        if (step < 5) { state.flowStep = step + 1; renderFlow(); step++; }
+        else clearInterval(timer);
+      }, 600);
+    }
+
+    function closeModal() { $('#modal').classList.remove('show'); }
+
+    // Events
+    $$('.nav-item').forEach(item => {
+      item.addEventListener('click', () => navigate(item.dataset.panel));
+    });
+
+    $('#roleSelect').addEventListener('change', e => {
+      state.role = e.target.value;
+      renderDashboard();
+      toast(`已切换至：${e.target.options[e.target.selectedIndex].text} 视角`);
+    });
+
+    $('#btnAdvanceFlow').addEventListener('click', advanceFlow);
+    $('#btnSimulate').addEventListener('click', simulateDeal);
+    $('#btnCopilot').addEventListener('click', () => {
+      $('#copilot').classList.toggle('collapsed');
+    });
+    $('#copilotToggle').addEventListener('click', () => {
+      $('#copilot').classList.toggle('collapsed');
+    });
+    $('#copilotSend').addEventListener('click', () => {
+      const v = $('#copilotInput').value.trim();
+      if (v) { askCopilot(v); $('#copilotInput').value = ''; }
+    });
+    $('#copilotInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') $('#copilotSend').click();
+    });
+
+    // Init
+    renderDashboard();
+    renderFlow();
+    renderLeads();
+    selectTier('high');
+    renderQuote();
+    renderDeal();
+    renderDelivery();
+    renderGrowth();
+    renderArch();
+    renderAgents();
+    initCopilot();
+  </script>
+</body>
+</html>
